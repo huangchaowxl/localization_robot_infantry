@@ -9,7 +9,6 @@
 #include <geometry_msgs/Pose2D.h>
 #include <nav_msgs/Odometry.h>
 // pcl
-#include <pcl/filters/voxel_grid.h>
 #include <pcl/registration/icp.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
@@ -93,7 +92,6 @@ namespace rt_localization_ns{
 
             thresholdTimes = 100;
             fitness_buffer.set_capacity(10);
-            cout<<"fitness buffer success"<<endl;
             velosity_x=velosity_y=velosity_yaw=0;
             localmap_cloud.reset(new pcl::PointCloud<pcl::PointXYZ>());
 

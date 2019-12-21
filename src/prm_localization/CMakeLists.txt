@@ -5,14 +5,14 @@ project(prm_localization)
 add_compile_options(-std=c++11)
 
 set(${PROJECT_NAME}_CATKIN_DEPS
-        roscpp std_msgs rospy nodelet sensor_msgs pcl_ros pcl_msgs ndt_omp nav_msgs tf tf_conversions  message_generation
-)
+        roscpp std_msgs rospy nodelet sensor_msgs pcl_ros pcl_msgs ndt_omp nav_msgs geometry_msgs tf tf_conversions  message_generation
+        )
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  message_generation ${${PROJECT_NAME}_CATKIN_DEPS} )
+        message_generation ${${PROJECT_NAME}_CATKIN_DEPS} )
 
 #show include
 # message(STATUS "localization include_directories:" )
@@ -25,7 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(PCL 1.7 REQUIRED)
 include_directories(
-  include  ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+        include  ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
@@ -58,24 +58,30 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+add_message_files(FILES
+        DriveInfo.msg
+        )
+
 add_service_files(
         FILES
         save_data.srv
-        )
-add_message_files(FILES
-  DriveInfo.msg
+        locali.srv
 )
 
-generate_messages(DEPENDENCIES std_msgs)
+
+generate_messages(DEPENDENCIES
+        std_msgs
+        geometry_msgs
+        )
 ###################################
 ## catkin specific configuration ##
 ###################################
 
 catkin_package(
- INCLUDE_DIRS include
- LIBRARIES  globalmap_provider_nodelet rt_localization_nodelet
- CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_DEPS}
-#  DEPENDS system_lib
+        INCLUDE_DIRS include
+        LIBRARIES  globalmap_provider_nodelet rt_localization_nodelet
+        CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_DEPS}
+        #  DEPENDS system_lib
 )
 
 
@@ -87,14 +93,21 @@ catkin_package(
 ## Your package locations should be listed before other locations
 set(EIGEN_INCLUDE_PATH "/usr/include/eigen3")
 include_directories(
-  include
-  ${EIGEN_INCLUDE_PATH}
-  ${catkin_INCLUDE_DIRS}
-#    ${Driveworks_INCLUDE_DIRS}
-#    ${CUDA_INCLUDE_DIRS}
+        include
+        ${EIGEN_INCLUDE_PATH}
+        ${catkin_INCLUDE_DIRS}
+        #    ${Driveworks_INCLUDE_DIRS}
+        #    ${CUDA_INCLUDE_DIRS}
 )
 
-
+add_executable(relocalizaer
+        src/relocalizaer.cpp
+        )
+add_dependencies(relocalizaer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(relocalizaer
+        ${catkin_LIBRARIES}
+        ${PCL_LIBRARIES}
+        )
 
 #nodelets
 add_library(globalmap_provider_nodelet src/globalmap_provider_nodelet.cpp)
@@ -106,8 +119,8 @@ target_link_libraries(globalmap_provider_nodelet
 add_library(rt_localization_nodelet src/rt_localization_nodelet.cpp)
 target_link_libraries(rt_localization_nodelet
         ${catkin_LIBRARIES}
-       ${PCL_LIBRARIES}
-#        ${Driveworks_LIBRARIES}
+        ${PCL_LIBRARIES}
+        #        ${Driveworks_LIBRARIES}
         )
 
 #install library http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
@@ -151,7 +164,7 @@ install(DIRECTORY launch
 # target_link_libraries(hello_nvidva
 #         ${catkin_LIBRARIES}
 #         ${PCL_LIBRARIES}
-        # ${Driveworks_LIBRARIES}
+# ${Driveworks_LIBRARIES}
 #         )
 
 

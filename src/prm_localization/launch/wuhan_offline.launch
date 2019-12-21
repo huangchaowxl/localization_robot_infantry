@@ -17,7 +17,7 @@
     <arg name="trim_high" default="40" />
     <arg name="radius" default="45.0" />
     <arg name="mapUpdateTime" default="5" />
-   <arg name="global_map_pcd_path" default="/home/vickylzy/workspaceROS/MAP_BAG/wuhan/localization_bug/localization_bug_info/map_nav.pcd" />
+    <arg name="global_map_pcd_path" default="/home/vickylzy/workspaceROS/MAP_BAG/wuhan/localization_bug/localization_bug_info/map_nav.pcd" />
 <!--    $(find prm_localization)/data/changshu_UGPL.pcd-->
     <!--icp para-->
     <!--regis para-->
@@ -33,7 +33,7 @@
     <!-- true代表激光定位算法输出INS系 -->
     <arg name="flag_slam_insout" default="true"/>
     <arg name="lp_odom_rate" default="0"/>
-
+    <node pkg="prm_localization" type="relocalizaer" name="relocalizaer_node"/>
 <!--manager-->
     <node pkg="nodelet" type="nodelet" name="$(arg manager_name)" args="manager" output="screen"/>
 <!--nodelet-->

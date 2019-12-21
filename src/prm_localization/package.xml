@@ -21,6 +21,7 @@
   <depend>ndt_omp</depend>
   <depend>tf</depend>
   <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>message_generation</depend>
 
   <build_depend>eigen</build_depend>
