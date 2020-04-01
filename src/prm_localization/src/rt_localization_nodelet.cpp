@@ -210,14 +210,23 @@ namespace rt_localization_ns{
             pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud (new pcl::PointCloud<pcl::PointXYZ>());
             pcl::fromROSMsg(*points_msg, *curr_cloud);
             if(curr_cloud->empty()){
-                NODELET_INFO("lidar provide emptry cloud!");
+                NODELET_INFO("lidar provide empty cloud!");
                 return;
             }
+            //remove nan
+            pcl::PointCloud<pcl::PointXYZ>::Ptr clear_cloud (new pcl::PointCloud<pcl::PointXYZ>());
+            std::vector<int> indices_index;
+            pcl::removeNaNFromPointCloud(*curr_cloud,*clear_cloud,indices_index);
+
             //downsample
-            downSampler.setInputCloud(curr_cloud);
+            downSampler.setInputCloud(clear_cloud);
             downSampler.filter(*filtered_cloud);
             //trim and 2d
             auto flat_cloud  = trimInputCloud(filtered_cloud,nearPointThreshold,farPointThreshold, trim_low, trim_high);
+            if(flat_cloud->empty()){
+                NODELET_WARN("pointcloud become empty after trimInputCloud, relax trim_condition");
+                return;
+            }
             //check lidar sight
             if(flat_cloud->size()<300){
                 NODELET_INFO("lidar lose sight!");

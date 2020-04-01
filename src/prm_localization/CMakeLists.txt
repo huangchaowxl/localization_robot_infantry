@@ -14,16 +14,8 @@ set(${PROJECT_NAME}_CATKIN_DEPS
 find_package(catkin REQUIRED COMPONENTS
         message_generation ${${PROJECT_NAME}_CATKIN_DEPS} )
 
-#show include
-# message(STATUS "localization include_directories:" )
-# get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-# foreach(dir ${dirs})
-#   message(STATUS "dir='${dir}'")
-# endforeach()
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-find_package(PCL 1.7 REQUIRED)
+find_package(PCL REQUIRED)
 include_directories(
         include  ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -35,22 +27,6 @@ message(STATUS "PCL_DEFINITIONS:" ${PCL_DEFINITIONS})
 
 
 
-#nvidva
-#message(STATUS "CMAKE_SOURCE_DIR:" ${CMAKE_SOURCE_DIR})
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/prm_localization/cmake/Modules/")
-#find_package(CUDA REQUIRED)
-#find_package(Threads REQUIRED)
-#find_package(GLEW REQUIRED)
-#find_package(Driveworks REQUIRED)
-
-#set(Driveworks_INCLUDE_DIRS ${Driveworks_INCLUDE_DIRS} "/usr/local/driveworks/include/")
-#set(CUDA_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS} "/usr/local/cuda/include")
-#set(Driveworks_LIBRARY_DIRS ${Driveworks_LIBRARY_DIRS} "/usr/local/driveworks/lib/")
-#include_directories(
-#        ${Driveworks_INCLUDE_DIRS}
-#        ${CUDA_INCLUDE_DIRS}
-#)
-#link_directories(${Driveworks_LIBRARY_DIRS})
 
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
@@ -141,14 +117,14 @@ install(DIRECTORY launch
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
         )
 #node
-# add_executable(blank
-#         src/blank.cpp
-#         )
-# add_dependencies(blank ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(blank
-#         ${catkin_LIBRARIES}
-#         ${PCL_LIBRARIES}
-#         )
+ add_executable(blank
+         src/blank.cpp
+         )
+ add_dependencies(blank ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ target_link_libraries(blank
+         ${catkin_LIBRARIES}
+         ${PCL_LIBRARIES}
+         )
 # add_executable(rt_localization_debug
 #         #         )
 # add_dependencies(rt_localization_debug ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

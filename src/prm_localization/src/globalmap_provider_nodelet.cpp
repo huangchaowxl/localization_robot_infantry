@@ -66,6 +66,11 @@ namespace globalmap_ns {
             /**load map and pub once**/ //maybe add voxelgrid down sample
             full_map.reset(new pcl::PointCloud<pcl::PointXYZ>());
             pcl::io::loadPCDFile(globalmap_pcd, *full_map);
+            //remove nan
+            pcl::PointCloud<pcl::PointXYZ>::Ptr clear_cloud (new pcl::PointCloud<pcl::PointXYZ>());
+            std::vector<int> indices_index;
+            pcl::removeNaNFromPointCloud(*full_map,*clear_cloud,indices_index);
+            full_map = clear_cloud;
             /**pcdownsample**/
             boost::shared_ptr<pcl::VoxelGrid<pcl::PointXYZ>> voxelgrid(new pcl::VoxelGrid<pcl::PointXYZ>());
             if (use_GPU_ICP)
@@ -129,6 +134,10 @@ namespace globalmap_ns {
 //                NODELET_INFO("trimmed_cloud init points_num:%ld",trimmed_cloud->width);
 //                NODELET_INFO("search points_num:%ld",pointIdxRadiusSearch.size());
                 trimmed_cloud->points.reserve(60000);
+                if (pointIdxRadiusSearch.empty()){
+                    NODELET_WARN("no pointcloud data around on given current position");
+                    return;
+                }
                 for (int i : pointIdxRadiusSearch)
                 {
                     if (full_map->points[i].z > z_min_threshold && full_map->points[i].z < z_max_threshold){

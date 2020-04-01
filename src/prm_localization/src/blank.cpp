@@ -27,6 +27,7 @@
 #include <boost/circular_buffer.hpp>
 //user
 #include <prm_localization/transform_utility.hpp>
+#include <prm_localization/csv_transform_reader.hpp>
 using namespace std;
 using namespace Eigen;
 using PointT = pcl::PointXYZ;
@@ -34,18 +35,25 @@ using PointT = pcl::PointXYZ;
 
 
 int main(int argc, char *argv[]) {
+    /**csv reader**/
+    prm_localization::CSV_reader csvReader("/home/vickylzy/workspaceROS/MAP_BAG/wuhan/Transform_map_GNSS_3dbag_ls700b_1204_1/3dbag_ls700b_1204_1_M_map_GNSS.csv");
+    cout<<csvReader.getTransformMg()<<endl;
     /** tf research **/
-    tf::StampedTransform transform1;
-    tf::Quaternion tfquaternion;
-    tf::Vector3 tfVector3;
-//    Eigen::Quaternionf eigenQ = euler2quat(1.5,2.0,-0.5);
-    tfquaternion.setEuler(1.5,2.0,-0.5);
-    tfVector3.setValue(2,3,4);
-    transform1.setOrigin(tfVector3);
-    transform1.setRotation(tfquaternion);
+//    tf::StampedTransform transform1;
+//    tf::Quaternion tfquaternion;
+//    tf::Vector3 tfVector3;
+////    Eigen::Quaternionf eigenQ = euler2quat(1.5,2.0,-0.5);
+//    tfquaternion.setEuler(1.5,2.0,-0.5);
+//    tfVector3.setValue(2,3,4);
+//    transform1.setOrigin(tfVector3);
+//    transform1.setRotation(tfquaternion);
     // cout<<transform1.getBasis()<<endl;
     /** eigen research**/
-//    Matrix4f m4a ;
+//    Matrix2f m2a ;
+//    m2a << 1,2,3,4;
+//    m4a << 1;
+//    m4a << 1;
+
 //    m4a.setRandom();
 //    cout<<m4a(0)<<endl;
 //    cout<<m4a(1)<<endl;
@@ -54,8 +62,8 @@ int main(int argc, char *argv[]) {
 //    cout<<m4a(5)<<endl;
 //    cout<<m4a(6)<<endl;
 //    cout<<m4a(7)<<endl;
-//
-//cout<<m4a<<endl;
+
+//cout<<m2a<<endl;
     /**send odom**/
 //    ros::init(argc, argv, "send_odom");
 //    ros::NodeHandle nh;
