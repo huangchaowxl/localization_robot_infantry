@@ -101,6 +101,22 @@ Matrix4f tftransform2rotm(const tf::StampedTransform& stampedTransform){
     return m4f;
 }
 
+Matrix3f geomo_oritention2rotm(const geometry_msgs::Quaternion &geo_quaternion){
+    Eigen::Quaternionf equaternion(geo_quaternion.w,geo_quaternion.x,geo_quaternion.y,geo_quaternion.z);
+    return quat2rot(equaternion);
+}
+geometry_msgs::Pose rotm2geomo_pose(const Eigen::Matrix4f &rotm){
+    geometry_msgs::Pose result;
+    result.position.x = rotm(0,3);
+    result.position.y = rotm(1,3);
+    result.position.z = rotm(2,3);
+    Eigen::Quaternionf eigen_quatf = rot2quat(rotm);
+    result.orientation.x=eigen_quatf.x();
+    result.orientation.y=eigen_quatf.y();
+    result.orientation.z=eigen_quatf.z();
+    result.orientation.w=eigen_quatf.w();
+    return result;
+}
 
 /**
  * from hdl_localization

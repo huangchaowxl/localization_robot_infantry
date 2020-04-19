@@ -5,19 +5,22 @@
 <!--    /lslidar_point_cloud-->
 <!--    /rslidar_points-->
 <!--    /velodyne_points-->
-    <arg name="points_topic" default="/rslidar_points"/>
+    <arg name="points_topic" default="/lslidar_point_cloud"/>
+    <arg name="gps_drive_topic"  default="/drive"/>
     <arg name="map_tf" default="parkinglot_world" />
-    <arg name="base_lidar_tf" default="velo_middle_localization" />
+    <arg name="base_lidar_tf" default="laser_link" />
     <arg name="base_foot_tf" default="base_footprint"/>
-    <arg name="init_x" default="0" />
-    <arg name="init_y" default="0" />
-    <arg name="init_yaw" default="0" />
+<!--     <arg name="init_x" default="10" /> -->
+<!--     <arg name="init_y" default="2" /> -->
+<!--     <arg name="init_yaw" default="2.9" /> -->
     <arg name="lidar_height" default="0"/>
     <arg name="trim_low" default="-0.2" />
     <arg name="trim_high" default="40" />
-    <arg name="radius" default="45.0" />
+    <arg name="radius" default="100.0" />
     <arg name="mapUpdateTime" default="5" />
-    <arg name="global_map_pcd_path" default="/home/vickylzy/workspaceROS/MAP_BAG/wuhan/localization_bug/localization_bug_info/map_nav.pcd" />
+    <arg name="global_map_pcd_path" default="/home/vickylzy/workspaceROS/MAP_BAG/wuhan/gongkong_front_andbackyard/wuhan_gongkong_front.pcd" />
+    <arg name="Transform_csv_path" default="/home/vickylzy/workspaceROS/MAP_BAG/wuhan/gongkong_front_andbackyard/wuhan_gongkong_front_M_map_GNSS.csv" />
+
 <!--    $(find prm_localization)/data/changshu_UGPL.pcd-->
     <!--icp para-->
     <!--regis para-->
@@ -27,13 +30,20 @@
     <arg name="ndt_resolution" default="1.0" />
     <arg name="regis_hard_threshold" default="30" />
     <!--filter-->
-    <arg name="farPointThreshold" default="40" />
+    <arg name="farPointThreshold" default="50" />
     <arg name="nearPointThreshold" default="1.3" />
     <arg name="manager_name" default="localization_manager"/>
     <!-- true代表激光定位算法输出INS系 -->
     <arg name="flag_slam_insout" default="true"/>
     <arg name="lp_odom_rate" default="0"/>
-    <node pkg="prm_localization" type="relocalizaer" name="relocalizaer_node"/>
+    <node pkg="prm_localization" type="relocalizaer" name="relocalizaer_node" output="screen">
+        <remap from="/lslidar_point_cloud" to="$(arg points_topic)" />
+        <remap from="/drive" to="$(arg gps_drive_topic)" />
+        <param name="map_tf" value="$(arg map_tf)" />
+        <param name="global_map_pcd_path" value="$(arg global_map_pcd_path)" />
+        <param name="base_foot_tf" value="$(arg base_foot_tf)" />
+        <param name="Transform_csv_path" value="$(arg Transform_csv_path)" />
+    </node>
 <!--manager-->
     <node pkg="nodelet" type="nodelet" name="$(arg manager_name)" args="manager" output="screen"/>
 <!--nodelet-->
@@ -49,9 +59,9 @@
         <param name="nearPointThreshold" value="$(arg nearPointThreshold)" />
         <param name="trim_low" value="$(arg trim_low)" />
         <param name="trim_high" value="$(arg trim_high)" />
-        <param name="init_x" value="$(arg init_x)" />
-        <param name="init_y" value="$(arg init_y)" />
-        <param name="init_yaw" value="$(arg init_yaw)" />
+<!--         <param name="init_x" value="$(arg init_x)" /> -->
+<!--         <param name="init_y" value="$(arg init_y)" /> -->
+<!--         <param name="init_yaw" value="$(arg init_yaw)" /> -->
         <param name="TransformationEpsilon" value="$(arg TransformationEpsilon)" />
         <param name="map_tf" value="$(arg map_tf)" />
         <param name="base_lidar_tf" value="$(arg base_lidar_tf)" />
@@ -66,9 +76,9 @@
         <param name="downsample_resolution" value="$(arg downsample_resolution)" />
         <param name="map_tf" value="$(arg map_tf)" />
         <param name="base_lidar_tf" value="$(arg base_lidar_tf)" />
-        <param name="init_x" value="$(arg init_x)" />
-        <param name="init_y" value="$(arg init_y)" />
-        <param name="init_yaw" value="$(arg init_yaw)" />
+<!--         <param name="init_x" value="$(arg init_x)" /> -->
+<!--         <param name="init_y" value="$(arg init_y)" /> -->
+<!--         <param name="init_yaw" value="$(arg init_yaw)" /> -->
         <param name="radius" value="$(arg radius)" />
         <param name="mapUpdateTime" value="$(arg mapUpdateTime)" />
         <param name="global_map_pcd_path" value="$(arg global_map_pcd_path)" />

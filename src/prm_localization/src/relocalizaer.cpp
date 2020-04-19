@@ -60,19 +60,21 @@ public:
         p_nh.param("TransformationEpsilon",TransformationEpsilon,0.0001f);
         p_nh.param("ndt_resolution",ndt_resolution,0.5f);
         p_nh.param("search_radius",search_radius,60.0f);
-        p_nh.param<string>("map_tf",map_tf,"map_tf");
-        p_nh.param<string>("global_pcd_path",global_pcd_path,"/home/vickylzy/workspaceROS/MAP_BAG/wuhan/Transform_map_GNSS_3dbag_ls700b_1204_1/wuhan_ls_great.pcd");
-        p_nh.param<string>("base_lidar_tf",lidar_tf,"base_lidar_tf");
+        p_nh.param<string>("map_tf",map_tf,"parkinglot_world");
+        p_nh.param<string>("global_pcd_path",global_pcd_path,"/home/vickylzy/workspaceROS/MAP_BAG/wuhan/gongkong_front_andbackyard/wuhan_gongkong_front.pcd");
+        p_nh.param<string>("base_lidar_tf",lidar_tf,"laser_link");
         p_nh.param<string>("base_foot_tf",base_tf,"base_foot_tf");
-        p_nh.param<string>("csv_path",csv_path,"/home/vickylzy/workspaceROS/MAP_BAG/wuhan/Transform_map_GNSS_3dbag_ls700b_1204_1/3dbag_ls700b_1204_1_M_map_GNSS.csv");
+        p_nh.param<string>("Transform_csv_path",csv_path,"/home/vickylzy/workspaceROS/MAP_BAG/wuhan/gongkong_front_andbackyard/wuhan_gongkong_front_M_map_GNSS.csv");
+        //read transform
+        prm_localization::CSV_reader csvReader(csv_path);
+        Motion_mg = csvReader.getTransformMg();
+//        std::cout<<"init_Motion_mg\n"<<Motion_mg<<std::endl;
 
         //suber puber service
         reloca_service = nh.advertiseService("/localization/relocalization",&Localizer_global::relocalization_callback,this);
 //        gnss_suber = nh.subscribe("/drive",2,&Localizer_global::location_retrans_callback,this);
         reloca_pc_puber = nh.advertise<sensor_msgs::PointCloud2>("reloca_pointcloud",2, true);
-        //read transform
-        prm_localization::CSV_reader csvReader(csv_path);
-        Motion_mg = csvReader.getTransformMg();
+
         //map
         full_map.reset(new pcl::PointCloud<pcl::PointXYZ>());
         pcl::io::loadPCDFile(global_pcd_path, *full_map);
@@ -101,6 +103,7 @@ public:
         //map_pub_click = nh.advertiseService("/localiztion/map_pub_click",&Localizer_global::click_pub_map_callback,this);
         //odom_pub = nh.advertise<nav_msgs::Odometry>("trans_odom",3);
 
+        ROS_INFO("Relocalizer node initial succeed! ");
 
     }
 
@@ -108,13 +111,21 @@ private:
 
 
     bool relocalization_callback(prm_localization::localiRequest &req,prm_localization::localiResponse &res){
+        ROS_INFO("starting global localization, waiting for gps and lidar...");
         prm_localization::DriveInfoConstPtr drive_msg =  ros::topic::waitForMessage<prm_localization::DriveInfo>("/drive");
-        sensor_msgs::PointCloud2ConstPtr point_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/lslidar_point_cloud",ros::Duration(10));
+        sensor_msgs::PointCloud2ConstPtr point_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/lslidar_point_cloud");
+        ROS_INFO("gps and lidar acquired !");
         Vector4f gps_pos;
         if(drive_msg->gnss_flag!=1)
             ROS_WARN("Bad GPS_Singal, relocation maybe wrong!");
         gps_pos << drive_msg->gnss_x,drive_msg->gnss_y,0,1;
+//        ROS_INFO("gps input:");
+//        std::cout<<gps_pos<<std::endl;
+//        std::cout<<"Motion_mg\n"<<Motion_mg<<std::endl;
         Vector4f map_curr_pos =  Motion_mg * gps_pos;
+//        ROS_INFO("gps position: ");
+//        std::cout<<map_curr_pos<<std::endl;
+
         //trim localmap
         pcl::PointXYZ searchPoint(map_curr_pos(0),map_curr_pos(1),0);
         std::vector<int> pointIdxRadiusSearch;
@@ -163,14 +174,18 @@ private:
         {
             int i=0;
             for(auto & init_motion : init_motions){
+                ROS_INFO("matching: %2.0f %%", 100*((float)i)/(float)particle);
                 pcl::PointCloud<pcl::PointXYZ> result_cloud ;
                 registration->align(result_cloud,init_motion);
                 result_motions.push_back(registration->getFinalTransformation());
                 objfuns(i) = registration->getFitnessScore();
                 ++i;
+
             }
 
         }
+
+
         //store 3 potionel set
         VectorXd::Index  index;
         std::vector<int> interest_sets_index;
@@ -184,23 +199,29 @@ private:
         VectorXd refined_objfuns = VectorXd::Ones(potioenl_choice); // mse store
         std::vector<Eigen::Matrix4f> refined_movement;
         for (int k=0 ; k<interest_sets_index.size();++k) {
+            ROS_INFO("refining: %2.0f %%", 100*((float)k)/(float)interest_sets_index.size());
             pcl::PointCloud<pcl::PointXYZ> result_cloud ;
             icp.align(result_cloud,result_motions[interest_sets_index[k]]);
             refined_movement.emplace_back(icp.getFinalTransformation());
             refined_objfuns(k) = icp.getFitnessScore();
+
         }
         ROS_INFO("select motion with refined_objfuns: %f",refined_objfuns.minCoeff(&index)); // min objfun
-        cout<<"refined_objfuns: "<<refined_objfuns<<endl;
+//        cout<<"refined_objfuns: "<<refined_objfuns<<endl;
 //        result_motions[int(index)];
         //(optional) show regis pc
-        pcl::PointCloud<pcl::PointXYZ>::Ptr result_cloud (new pcl::PointCloud<pcl::PointXYZ>()) ;
-        pcl::transformPointCloud(*curr_cloud,*result_cloud,refined_movement[(int)index]);
-        pcl_conversions::toPCL(point_msg->header,result_cloud->header);
-        result_cloud->header.frame_id = map_tf;
-        reloca_pc_puber.publish(result_cloud);
-        map_pub.publish(full_map);
-        ROS_INFO("cloud republished");
-
+//        {
+//            pcl::PointCloud<pcl::PointXYZ>::Ptr result_cloud(new pcl::PointCloud<pcl::PointXYZ>());
+//            pcl::transformPointCloud(*curr_cloud, *result_cloud, refined_movement[(int) index]);
+//            pcl_conversions::toPCL(point_msg->header, result_cloud->header);
+//            result_cloud->header.frame_id = map_tf;
+//            reloca_pc_puber.publish(result_cloud);
+//            map_pub.publish(full_map);
+//            ROS_INFO("cloud republished");
+//        }
+        Eigen::Matrix4f final_localization= refined_movement[(int) index];
+        res.location = rotm2geomo_pose(final_localization);
+        return true;
     }
 
 //    void location_retrans_callback(const prm_localization::DriveInfoConstPtr& drive_msg){

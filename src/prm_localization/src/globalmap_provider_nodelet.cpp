@@ -54,9 +54,14 @@ namespace globalmap_ns {
             NODELET_INFO("radius: %f",radius);
             NODELET_INFO("%s",globalmap_pcd.c_str());
             /**initial pose**/
+//            NODELET_INFO("GlobalmapProviderNodelet: wating for global localization...");
+//            auto init_odom = ros::topic::waitForMessage<nav_msgs::Odometry>("/localization/odom");
+//            NODELET_INFO("GlobalmapProviderNodelet: global position acquired!");
             curr_pose.reset(new geometry_msgs::PoseStamped());
-            curr_pose->pose.position.x= private_nh.param<float>("init_x", 0.0f);
-            curr_pose->pose.position.y= private_nh.param<float>("init_y", 0.0f);
+            curr_pose->pose.position.x= 0;
+            curr_pose->pose.position.y= 0;
+//            curr_pose->pose.position.x= init_odom->pose.pose.position.x;
+//            curr_pose->pose.position.y= init_odom->pose.pose.position.y;
             curr_pose->pose.position.z= 0.0f;
             Eigen::Quaternionf quaternionf=euler2quat(0,0,private_nh.param<double>("init_yaw", 0));
             curr_pose->pose.orientation.x=quaternionf.x();
